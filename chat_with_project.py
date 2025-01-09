@@ -90,6 +90,7 @@ def generate_response_with_gpt(query, relevant_docs, system_prompt):
     try:
         response = chat.invoke(messages)
         print(f"OpenAI API Response: {response.content}")
+        print("Type OpenAI API Response",type(response.content))
         return response.content
     except Exception as e:
         print(f"Error during OpenAI API call: {e}")
@@ -101,5 +102,9 @@ def query_project(query, system_prompt):
     Queries the project using a RAG approach with specified system prompt.
     """
     relevant_docs = retrieve_relevant_documents(query)
+    print(" Starting the query:")
+    print(query)
     response = generate_response_with_gpt(query, relevant_docs, system_prompt)
+    print(f"Query Response: {response}")
+    print("Type response",type(response))
     return response
