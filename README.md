@@ -24,8 +24,8 @@ Project Chatter is a powerful tool that allows you to interact with your code re
 2.  **Clone the repository:**
 
     ```bash
-    git clone <repository_url>
-    cd <repository_directory>
+    https://github.com/ruslanmv/Project-Chatter.git
+    cd Project-Chatter
     ```
 
 3.  **Install dependencies:**
