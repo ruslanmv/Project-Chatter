@@ -43,6 +43,8 @@ Project Chatter is a powerful tool that allows you to interact with your code re
     openai
     langchain
     python-dotenv
+    langchain-community
+    langchain_openai
     ```
 
 4.  **Set up your OpenAI API Key:**
