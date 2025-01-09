@@ -1,5 +1,5 @@
 # Project Chatter: Chat with Your Codebase
-
+![](assets/2025-01-09-12-10-49.png)
 ## Overview
 
 Project Chatter is a powerful tool that allows you to interact with your code repositories using natural language. It leverages the capabilities of large language models (LLMs) like GPT-3.5/4, combined with a vector database (Milvus), to provide an intelligent conversational interface for your projects.
