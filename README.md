@@ -91,6 +91,10 @@ Project Chatter is a powerful tool that allows you to interact with your code re
 *   "Explain the main components of the architecture."
 *   "What are the dependencies of this project?"
 
+## Example
+![](assets/2025-01-09-12-49-12.png)
+
+
 **Debugger Mode:**
 
 *   "Are there any potential memory leaks?"
@@ -98,6 +102,10 @@ Project Chatter is a powerful tool that allows you to interact with your code re
 *   "Is there any error handling missing in this function?"
 *   "How can I fix this specific bug?" (Provide context or code snippets)
 
+
+## Example
+
+![](assets/2025-01-09-12-50-43.png)
 ## Contributing
 
 Contributions are welcome! If you have suggestions, bug reports, or want to contribute code, please feel free to open an issue or submit a pull request.

@@ -140,7 +140,14 @@ chat_iface = gr.Interface(
     ],
     title="Chat with your Project",
     description="Ask questions about the data extracted from the zip file.",
-    examples=[["What is this project about?"], ["Are there any potential bugs?"]],
+    examples=[["What is this project about?"], ["Are there any potential bugs?"],
+            ["How does the data flow through the application?"],
+            ["Explain the main components of the architecture."],
+            ["What are the dependencies of this project?"],
+            ["Are there any potential memory leaks?"],
+            ["Identify any areas where the code could be optimized."],
+            ["Is there any error handling missing in this function?"]
+            ],
 )
 
 # Settings Interface
