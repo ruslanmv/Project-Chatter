@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from chat_with_project import query_project
 from get_prompts import get_prompt_for_mode
-from dotenv import load_dotenv, dotenv_values, set_key
+from dotenv import load_dotenv, set_key
 
 # --- Configuration and Setup ---
 
@@ -21,9 +21,8 @@ os.makedirs(EXTRACTION_DIR, exist_ok=True)
 
 def ensure_env_file_exists():
     """Ensures that a .env file exists in the project root."""
-    env_file_path = ".env"
-    if not os.path.exists(env_file_path):
-        with open(env_file_path, "w") as f:
+    if not os.path.exists(".env"):
+        with open(".env", "w") as f:
             f.write("")  # Create an empty .env file
 
 def load_api_key():
@@ -34,9 +33,8 @@ def load_api_key():
 
 def update_api_key(api_key):
     """Updates the API key in the .env file."""
-    env_file = ".env"
     if api_key:
-        set_key(env_file, "OPENAI_API_KEY", api_key)
+        set_key(".env", "OPENAI_API_KEY", api_key)
         load_dotenv()  # Reload environment variables
         return "API key updated successfully."
     else:
@@ -84,6 +82,32 @@ def init_milvus():
 
 # --- Gradio UI Components ---
 
+# Chat Interface
+def chat_ui(query, history, mode):
+    """Handles the chat interaction for both Analyzer and Debugger modes."""
+    api_key = load_api_key()
+    if not api_key:
+        return "Error: OpenAI API key not set. Please set the API key in the Settings tab.", history
+
+    # Initialize history if None
+    if history is None:
+        history = []
+
+    print(f"Chat Mode: {mode}")
+    system_prompt = get_prompt_for_mode(mode)
+    print(f"System Prompt: {system_prompt}")
+
+    # Pass the query and system prompt to the LLM
+    response = query_project(query, system_prompt)
+    print(f"Response from query_project: {response}")
+
+    if response is None or not response.strip():
+        response = "An error occurred during processing. Please check the logs."
+
+    # Append user query and LLM response to history
+    history.append((query, response))
+    return history, history  # Returning updated history for both chatbot display and state
+
 # ZIP Processing Interface
 zip_iface = gr.Interface(
     fn=process_zip,
@@ -102,46 +126,18 @@ milvus_iface = gr.Interface(
     description="Initialize or load the Milvus vector database.",
 )
 
-# Chat Interface
-def chat_ui(query, history, mode):
-    """Handles the chat interaction for both Analyzer and Debugger modes."""
-    api_key = load_api_key()
-    if not api_key:
-        return "Error: OpenAI API key not set. Please set the API key in the Settings tab.", history
-
-    # Initialize history if None
-    if history is None:
-        history = []
-
-    print(f"Chat Mode: {mode}")
-    system_prompt = get_prompt_for_mode(mode)
-    print(f"System Prompt: {system_prompt}")
-
-    # Pass the history to query_project
-    response = query_project(query, system_prompt)
-    print(f"Response from query_project: {response}")
-
-    if response is None:
-        response = "An error occurred during processing. Please check the logs."
-
-    history.append((query, response))
-    return "", history
-# Gradio Chatbot UI
-chatbot = gr.Chatbot(
-    [],
-    elem_id="chatbot",
-    bubble_full_width=False,
-    avatar_images=(None, (os.path.join(os.path.dirname(__file__), "deriv_logo.png"))),
-)
-
+# Gradio Chatbot UI Interface
 chat_iface = gr.Interface(
     fn=chat_ui,
     inputs=[
-        "text",
-        "state",
+        gr.Textbox(label="Ask a question", placeholder="Type your question here"),
+        gr.State(),  # Maintains chat history
         gr.Radio(["analyzer", "debugger"], label="Chat Mode", value="analyzer")
     ],
-    outputs=["text", "state"],
+    outputs=[
+        gr.Chatbot(label="Chat with Project"),
+        "state"
+    ],
     title="Chat with your Project",
     description="Ask questions about the data extracted from the zip file.",
     examples=[["What is this project about?"], ["Are there any potential bugs?"]],
