@@ -1,13 +1,17 @@
 from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection, utility
 import pandas as pd
 import os
+import sys
 from sentence_transformers import SentenceTransformer
+import time
 
 # Milvus connection details (adjust if needed)
 MILVUS_HOST = 'localhost'
 MILVUS_PORT = '19530'
 COLLECTION_NAME = 'document_collection'
 DIMENSION = 384  # Adjust based on your embedding model
+MAX_RETRIES = 3
+RETRY_DELAY = 5  # seconds
 
 # Embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -63,7 +67,20 @@ def load_data_to_milvus():
     print(f"Data from {df_path} loaded into Milvus collection {COLLECTION_NAME}.")
 
 if __name__ == "__main__":
-    connections.connect(host=MILVUS_HOST, port=MILVUS_PORT)
-    create_milvus_collection()
-    load_data_to_milvus()
-    connections.disconnect(alias='default')
+    retries = 0
+    while retries < MAX_RETRIES:
+        try:
+            connections.connect(host=MILVUS_HOST, port=MILVUS_PORT)
+            create_milvus_collection()
+            load_data_to_milvus()
+            connections.disconnect(alias='default')
+            break  # Connection successful, break out of the loop
+        except Exception as e:
+            print(f"Error connecting to Milvus: {e}")
+            retries += 1
+            if retries < MAX_RETRIES:
+                print(f"Retrying in {RETRY_DELAY} seconds...")
+                time.sleep(RETRY_DELAY)
+            else:
+                print("Max retries reached. Could not connect to Milvus.")
+                sys.exit(1)  # Exit with an error code

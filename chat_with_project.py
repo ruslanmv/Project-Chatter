@@ -1,19 +1,21 @@
-from pymilvus import connections, Collection
-import openai
+from pymilvus import connections, Collection, utility
 from sentence_transformers import SentenceTransformer
-from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage, AIMessage
+from langchain_community.chat_models import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+import os
 
 # Milvus connection details
 MILVUS_HOST = 'localhost'
 MILVUS_PORT = '19530'
 COLLECTION_NAME = 'document_collection'
 
-# OpenAI API Key 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-if openai.api_key is None:
-    raise ValueError("Please set your OpenAI API key in the environment variable OPENAI_API_KEY.")
+def load_api_key():
+    """Loads the API key from the .env file or the environment."""
+    from dotenv import load_dotenv
+    load_dotenv()
+    return os.environ.get("OPENAI_API_KEY")
 
 # Embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -23,36 +25,45 @@ def retrieve_relevant_documents(query, top_k=5):
     Retrieves the most relevant documents from Milvus based on the query.
     """
     connections.connect(host=MILVUS_HOST, port=MILVUS_PORT)
-    collection = Collection(COLLECTION_NAME)
-    collection.load()
+    if utility.has_collection(COLLECTION_NAME):
+        collection = Collection(COLLECTION_NAME)
+        collection.load()
 
-    query_vector = model.encode([query]).tolist()
-    search_params = {
-        "metric_type": "L2",
-        "params": {"nprobe": 16}
-    }
-    search_results = collection.search(
-        data=query_vector,
-        anns_field="content_vector",
-        param=search_params,
-        limit=top_k,
-        expr=None,
-        output_fields=["path"]
-    )
+        query_vector = model.encode([query]).tolist()
+        search_params = {
+            "metric_type": "L2",
+            "params": {"nprobe": 16}
+        }
+        search_results = collection.search(
+            data=query_vector,
+            anns_field="content_vector",
+            param=search_params,
+            limit=top_k,
+            expr=None,
+            output_fields=["path"]
+        )
 
-    relevant_docs = []
-    for hit in search_results[0]:
-        doc_path = hit.entity.get("path")
-        relevant_docs.append(doc_path)
+        relevant_docs = []
+        for hit in search_results[0]:
+            doc_path = hit.entity.get("path")
+            relevant_docs.append(doc_path)
 
-    connections.disconnect(alias='default')
+        connections.disconnect(alias='default')
+    else:
+        print(f"Collection {COLLECTION_NAME} does not exist.")
+        relevant_docs = []
+
     return relevant_docs
 
 def generate_response_with_gpt(query, relevant_docs, system_prompt):
     """
     Generates a response using OpenAI's GPT model, based on the query, relevant documents, and system prompt.
     """
-    chat = ChatOpenAI(temperature=0.7, openai_api_key=openai.api_key, model_name="gpt-3.5-turbo")
+    api_key = load_api_key()
+    if not api_key:
+        raise ValueError("OpenAI API key not set. Please set it in the .env file or environment variables.")
+
+    chat = ChatOpenAI(temperature=0.7, openai_api_key=api_key, model_name="gpt-3.5-turbo")
 
     messages = [
         SystemMessage(content=system_prompt),

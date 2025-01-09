@@ -7,19 +7,33 @@ from chat_with_project import query_project
 from get_prompts import get_prompt_for_mode
 from dotenv import load_dotenv, dotenv_values, set_key
 
-# Load initial environment variables from .env file
-load_dotenv()
+# --- Configuration and Setup ---
 
-# Ensure the 'workspace' and 'extraction' directories exist
+# Define paths for workspace and extraction directories
 WORKSPACE_DIR = "workspace"
 EXTRACTION_DIR = "extraction"
-if not os.path.exists(WORKSPACE_DIR):
-    os.makedirs(WORKSPACE_DIR)
-if not os.path.exists(EXTRACTION_DIR):
-    os.makedirs(EXTRACTION_DIR)
 
-# Function to update API key in .env file
+# Create directories if they don't exist
+os.makedirs(WORKSPACE_DIR, exist_ok=True)
+os.makedirs(EXTRACTION_DIR, exist_ok=True)
+
+# --- API Key Management ---
+
+def ensure_env_file_exists():
+    """Ensures that a .env file exists in the project root."""
+    env_file_path = ".env"
+    if not os.path.exists(env_file_path):
+        with open(env_file_path, "w") as f:
+            f.write("")  # Create an empty .env file
+
+def load_api_key():
+    """Loads the API key from the .env file or the environment."""
+    ensure_env_file_exists()
+    load_dotenv()
+    return os.environ.get("OPENAI_API_KEY")
+
 def update_api_key(api_key):
+    """Updates the API key in the .env file."""
     env_file = ".env"
     if api_key:
         set_key(env_file, "OPENAI_API_KEY", api_key)
@@ -28,18 +42,17 @@ def update_api_key(api_key):
     else:
         return "API key cannot be empty."
 
-# Function to check if the API key is set
 def is_api_key_set():
-    return "OPENAI_API_KEY" in dotenv_values() and dotenv_values()["OPENAI_API_KEY"] != ""
+    """Checks if the API key is set."""
+    return bool(load_api_key())
+
+# --- Core Functionalities ---
 
 def process_zip(zip_file_path):
-    """
-    Extracts a zip file, analyzes content, and stores information.
-    """
+    """Extracts a zip file, analyzes content, and stores information."""
     try:
         # Clear and recreate the workspace directory
-        if os.path.exists(WORKSPACE_DIR):
-            shutil.rmtree(WORKSPACE_DIR)
+        shutil.rmtree(WORKSPACE_DIR, ignore_errors=True)
         os.makedirs(WORKSPACE_DIR)
 
         # Extract the zip file
@@ -55,9 +68,7 @@ def process_zip(zip_file_path):
         return f"An error occurred: {e}"
 
 def init_milvus():
-    """
-    Initializes or loads the Milvus vector database.
-    """
+    """Initializes or loads the Milvus vector database."""
     try:
         # Run milvus.py to initialize Milvus
         subprocess.run(["python", "milvus.py"], check=True)
@@ -65,7 +76,8 @@ def init_milvus():
     except Exception as e:
         return f"Error initializing Milvus: {e}"
 
-# Gradio UI components
+# --- Gradio UI Components ---
+
 # ZIP Processing Interface
 zip_iface = gr.Interface(
     fn=process_zip,
@@ -86,9 +98,7 @@ milvus_iface = gr.Interface(
 
 # Chat Interface
 def chat_ui(query, history, mode):
-    """
-    Handles the chat interaction for both Analyzer and Debugger modes.
-    """
+    """Handles the chat interaction for both Analyzer and Debugger modes."""
     if not is_api_key_set():
         return "Error: OpenAI API key not set. Please set the API key in the Settings tab.", history
 
@@ -128,6 +138,7 @@ settings_iface = gr.Interface(
     title="Settings",
     description="Set your OpenAI API key.",
 )
+
 # Status Interface
 def get_api_key_status():
     if is_api_key_set():
@@ -139,11 +150,14 @@ status_iface = gr.Interface(
     fn=get_api_key_status,
     inputs=None,
     outputs="text",
-    live=True,  # This makes the interface update automatically
+    live=True,
     title="API Key Status"
 )
+
 # Add credits to the UI
 credits = gr.Markdown("## Credits\n\nCreated by [Ruslan Mavlyutov](https://ruslanmv.com/)")
+
+# --- Main Application Launch ---
 
 # Combine the interfaces using Tabs
 demo = gr.TabbedInterface(

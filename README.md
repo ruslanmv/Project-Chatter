@@ -18,7 +18,7 @@ Project Chatter is a powerful tool that allows you to interact with your code re
 ## Installation
 
 1.  **Prerequisites:**
-    *   Python 3.8 or higher
+    *   Python 3.12 or higher
     *   Milvus Vector Database (Follow the [official Milvus installation guide](https://milvus.io/docs/install_standalone-docker.md) to set up a Milvus instance.)
 
 2.  **Clone the repository:**
