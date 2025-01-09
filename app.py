@@ -71,8 +71,14 @@ def init_milvus():
     """Initializes or loads the Milvus vector database."""
     try:
         # Run milvus.py to initialize Milvus
-        subprocess.run(["python", "milvus.py"], check=True)
-        return "Milvus database initialized or loaded successfully."
+        result = subprocess.run(["python", "milvus.py"], capture_output=True, text=True, check=False)
+
+        if result.returncode != 0:
+            # Milvus initialization failed
+            return f"Error initializing Milvus: {result.stderr}"
+        else:
+            # Milvus initialization successful
+            return "Milvus database initialized or loaded successfully."
     except Exception as e:
         return f"Error initializing Milvus: {e}"
 
@@ -99,16 +105,27 @@ milvus_iface = gr.Interface(
 # Chat Interface
 def chat_ui(query, history, mode):
     """Handles the chat interaction for both Analyzer and Debugger modes."""
-    if not is_api_key_set():
+    api_key = load_api_key()
+    if not api_key:
         return "Error: OpenAI API key not set. Please set the API key in the Settings tab.", history
 
-    system_prompt = get_prompt_for_mode(mode)
-    response = query_project(query, system_prompt)
+    # Initialize history if None
+    if history is None:
+        history = []
 
-    # Update history for UI display
+    print(f"Chat Mode: {mode}")
+    system_prompt = get_prompt_for_mode(mode)
+    print(f"System Prompt: {system_prompt}")
+
+    # Pass the history to query_project
+    response = query_project(query, system_prompt)
+    print(f"Response from query_project: {response}")
+
+    if response is None:
+        response = "An error occurred during processing. Please check the logs."
+
     history.append((query, response))
     return "", history
-
 # Gradio Chatbot UI
 chatbot = gr.Chatbot(
     [],
@@ -155,7 +172,7 @@ status_iface = gr.Interface(
 )
 
 # Add credits to the UI
-credits = gr.Markdown("## Credits\n\nCreated by [Ruslan Mavlyutov](https://ruslanmv.com/)")
+credits = gr.Markdown("## Credits\n\nCreated by [Ruslan Magana Vsevolodovna](https://ruslanmv.com/)")
 
 # --- Main Application Launch ---
 
