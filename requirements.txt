@@ -1,0 +1,6 @@
+    gradio
+    pymilvus
+    sentence-transformers
+    openai
+    langchain
+    python-dotenv
