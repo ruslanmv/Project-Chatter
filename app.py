@@ -84,7 +84,7 @@ def init_milvus():
 
 # Chat Interface
 def chat_ui(query, history, mode):
-    """Handles the chat interaction for Analyzer, Debugger and Developer modes."""
+    """Handles the chat interaction for Analyzer, Debugger, and Developer modes."""
     api_key = load_api_key()
     if not api_key:
         return "Error: OpenAI API key not set. Please set the API key in the Settings tab.", history
@@ -103,19 +103,24 @@ def chat_ui(query, history, mode):
 
     if response is None or not response.strip():
         response = "An error occurred during processing. Please check the logs."
-    
+
     if mode == "developer":
         extracted_files = extract_files_from_response(response)
-        response_to_display = ""
 
+        # Format the output for developer mode
+        developer_response = ""
         for filepath, content in extracted_files.items():
-            response_to_display += f"## {filepath}\n\n`\n{content}\n`\n\n"
-    else:
-        response_to_display = response
+            developer_response += f"**{filepath}:**\n```python\n{content}\n```\n\n" 
 
-    # Append user query and LLM response to history
-    history.append((query, response_to_display))
-    return history, history  # Returning updated history for both chatbot display and state
+        history.append((query, developer_response))
+        return history, history  # Return only the history for chatbot and state
+
+    else:
+        # Format the output for non-developer modes
+        formatted_response = response.replace('\n', '  \n')  # Use two spaces for markdown line breaks
+        history.append((query, formatted_response))
+        return history, history  # Return only the history for chatbot and state
+
 
 def extract_files_from_response(response):
     """
@@ -136,7 +141,7 @@ def extract_files_from_response(response):
             if current_file is not None:
                 # Save previous file content
                 files[current_file] = "\n".join(current_content)
-            
+
             # Start a new file
             current_file = line.replace("--- BEGIN FILE:", "").strip()
             current_content = []
@@ -180,19 +185,22 @@ chat_iface = gr.Interface(
     ],
     outputs=[
         gr.Chatbot(label="Chat with Project"),
-        "state"
+        "state"  # This is to store the state
     ],
     title="Chat with your Project",
     description="Ask questions about the data extracted from the zip file.",
-    examples=[["What is this project about?"], ["Are there any potential bugs?"],
-              ["How does the data flow through the application?"],
-              ["Explain the main components of the architecture."],
-              ["What are the dependencies of this project?"],
-              ["Are there any potential memory leaks?"],
-              ["Identify any areas where the code could be optimized."],
-              ["Is there any error handling missing in this function?"],
-              ["Add a new endpoint to list all users to the server.py file"]
-              ],
+    # Example usage - Corrected to only include instruction and mode
+    examples=[
+        ["What is this project about?", "analyzer"],
+        ["Are there any potential bugs?", "debugger"], 
+        ["How does the data flow through the application?", "analyzer"],
+        ["Explain the main components of the architecture.", "analyzer"],
+        ["What are the dependencies of this project?",  "analyzer"],
+        ["Are there any potential memory leaks?",  "debugger"],
+        ["Identify any areas where the code could be optimized.","debugger"],
+        ["Can you implement basic logging for the main application with log levels (INFO, DEBUG, ERROR) and ensure that logs are saved to a file for later analysis?",  "developer"],
+        ["Can you include try/except blocks in the main functions to catch exceptions and provide more descriptive error messages for easier debugging?",  "developer"]
+    ],
 )
 
 # Settings Interface
