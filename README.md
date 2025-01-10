@@ -9,9 +9,10 @@ Project Chatter is a powerful tool that allows you to interact with your code re
 *   **Zip File Analysis:** Upload a zip file of your project, and Project Chatter will extract and analyze its contents.
 *   **Vector Database Indexing:** The project's code and documentation are converted into vector embeddings using Sentence Transformers and stored in a Milvus vector database for efficient similarity search.
 *   **Conversational AI:** Chat with your project using natural language queries. Project Chatter uses a Retrieval-Augmented Generation (RAG) approach to retrieve relevant code snippets and generate insightful responses.
-*   **Two Chat Modes:**
+*   **Three Chat Modes:**
     *   **Analyzer:** Understand the overall structure, purpose, and functionality of your project.
     *   **Debugger:** Identify potential bugs, errors, and areas for improvement. Get suggestions for fixes and even corrected code snippets.
+    *   **Developer:** You can requests features to the existig codes to modify or add.
 *   **Secure API Key Management:** Store your OpenAI API key securely in a `.env` file or enter it directly through the web interface.
 *   **User-Friendly Interface:** Built with Gradio, providing an intuitive and interactive web-based UI.
 
