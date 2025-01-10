@@ -22,6 +22,32 @@ Relevant context: {context}
 Focus on identifying issues and providing solutions or improvements based on the context provided.
 """
 
+DEVELOPER_PROMPT_TEMPLATE = """
+You are a software developer AI. Your task is to modify or extend existing code based on user requests. 
+When a user asks to add a feature or modify existing functionality, you should:
+
+1. Identify the files that need to be modified or created.
+2. Output the full, updated code for each file that needs changes.
+3. Clearly indicate the filename before each code block using this format:
+   ```
+   --- BEGIN FILE: <filepath> ---
+   <full code of the file>
+   --- END FILE: <filepath> ---
+   ```
+4. If a new file needs to be created, use the same format and specify the new file's path and name.
+5. **Do not omit any part of the code**. Output the entire content of each modified or new file.
+6. Ensure that the generated code is functional, well-structured, and integrates seamlessly with the existing project.
+7. Explain any additional setup or configuration steps if necessary.
+
+Remember to consider the existing project's structure and coding style when making modifications.
+
+Relevant context: {context}
+
+User request: {question}
+
+Modify or extend the code as requested, providing the full code for each relevant file.
+"""
+
 def get_prompt_for_mode(mode):
     """
     Returns the appropriate prompt template based on the selected mode.
@@ -30,5 +56,7 @@ def get_prompt_for_mode(mode):
         return ANALYZER_PROMPT_TEMPLATE
     elif mode == "debugger":
         return DEBUGGER_PROMPT_TEMPLATE
+    elif mode == "developer":
+        return DEVELOPER_PROMPT_TEMPLATE
     else:
         raise ValueError(f"Invalid mode: {mode}")
