@@ -106,6 +106,15 @@ Project Chatter is a powerful tool that allows you to interact with your code re
 ## Example
 
 ![](assets/2025-01-09-12-50-43.png)
+
+
+***Developer Mode:**
+*  "Can you implement basic logging for the main application with log levels (INFO, DEBUG, ERROR) and ensure that logs are saved to a file for later analysis?"
+*  "Can you include try/except blocks in the main functions to catch exceptions and provide more descriptive error messages for easier debugging?"
+*   "How can add a developer mode, which prompt sholud modify or add"
+## Example
+
+![](assets/2025-01-10-11-50-39.png)
 ## Contributing
 
 Contributions are welcome! If you have suggestions, bug reports, or want to contribute code, please feel free to open an issue or submit a pull request.
